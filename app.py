@@ -11,107 +11,98 @@ st.set_page_config(
     layout="wide"
 )
 
-# -----------------------------
-# Colorful UI CSS
-# -----------------------------
 st.markdown("""
 <style>
 
 .stApp {
-    background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899);
-    color: white;
+    background-color: #0f172a;
 }
 
 .title {
     text-align: center;
-    font-size: 42px;
-    font-weight: 800;
+    font-size: 40px;
+    font-weight: 700;
     color: white;
     margin-top: 20px;
 }
 
 .subtitle {
     text-align: center;
-    font-size: 18px;
-    color: #f8fafc;
-    margin-bottom: 30px;
+    color: #94a3b8;
+    font-size: 16px;
+    margin-bottom: 25px;
 }
 
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0f172a, #1e293b);
-    color: white;
-}
-
-.answer-box {
-    background: white;
-    color: #111827;
-    padding: 22px;
-    border-radius: 22px;
-    box-shadow: 0px 8px 30px rgba(0,0,0,0.25);
-    line-height: 1.7;
-    font-size: 16px;
-}
-
-.source-box {
-    background: #f8fafc;
-    color: #111827;
-    border-left: 6px solid #06b6d4;
-    padding: 16px;
-    border-radius: 16px;
-    margin-top: 12px;
+    background-color: #111827;
 }
 
 .info-card {
-    background: rgba(255,255,255,0.18);
-    padding: 18px;
-    border-radius: 18px;
-    margin-bottom: 15px;
+    background: #1e293b;
     color: white;
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    margin-bottom: 15px;
+}
+
+.answer-box {
+    background: #111827;
+    color: white;
+    padding: 20px;
+    border-radius: 18px;
+    border-left: 5px solid #3b82f6;
+    line-height: 1.7;
+}
+
+.source-box {
+    background: #1e293b;
+    color: white;
+    padding: 15px;
+    border-radius: 14px;
+    border-left: 4px solid #3b82f6;
+    margin-bottom: 12px;
 }
 
 .stFileUploader {
-    background: white;
-    border-radius: 16px;
-    padding: 15px;
-}
-
-.stTextInput input {
-    border-radius: 20px;
-    border: 2px solid #06b6d4;
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 10px;
 }
 
 .stButton>button {
-    background: linear-gradient(90deg, #06b6d4, #3b82f6);
+    background: #2563eb;
     color: white;
-    border-radius: 14px;
+    border-radius: 10px;
     border: none;
-    font-weight: bold;
 }
 
-[data-testid="chatAvatarIcon-user"] {
-    background-color: #2563eb;
+.stButton>button:hover {
+    background: #1d4ed8;
 }
 
-[data-testid="chatAvatarIcon-assistant"] {
-    background-color: #10b981;
+hr {
+    border-color: #334155;
+}
+
+[data-testid="stChatMessage"] {
+    background-color: transparent;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------
-# Header
-# -----------------------------
 st.markdown("""
-<div class='title'>🛠️ Maintenance Copilot</div>
+<div class='title'>
+🛠️ Maintenance Copilot
+</div>
+
 <div class='subtitle'>
-AI-Powered Equipment Diagnostics using Maintenance Manuals and Image Evidence
+AI-Powered Equipment Diagnostics & Maintenance Assistant
 </div>
 """, unsafe_allow_html=True)
 
-# -----------------------------
-# Helper Functions
-# -----------------------------
+
 def extract_pdf_text(pdf_file):
     reader = PdfReader(pdf_file)
     text = ""
@@ -217,14 +208,11 @@ def generate_maintenance_answer(question, retrieved_text):
 
 <br>
 
-<b>Evidence From Manual:</b><br>
+<b>Manual Evidence Used:</b><br>
 {retrieved_text[:1200]}
 """
 
 
-# -----------------------------
-# Session State
-# -----------------------------
 if "chunks" not in st.session_state:
     st.session_state.chunks = []
 
@@ -237,9 +225,7 @@ if "vectors" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# -----------------------------
-# Sidebar Uploads
-# -----------------------------
+
 with st.sidebar:
     st.header("📤 Upload Inputs")
 
@@ -249,7 +235,7 @@ with st.sidebar:
     )
 
     image_file = st.file_uploader(
-        "Upload Related Equipment Image",
+        "Upload Equipment Image",
         type=["jpg", "jpeg", "png"]
     )
 
@@ -274,9 +260,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# -----------------------------
-# Process PDF
-# -----------------------------
+
 if pdf_file:
     if (
         "processed_pdf" not in st.session_state
@@ -302,9 +286,7 @@ if pdf_file:
 
         st.sidebar.success("✅ PDF indexed successfully!")
 
-# -----------------------------
-# Display Image
-# -----------------------------
+
 if image_file:
     image = Image.open(image_file)
     st.sidebar.image(
@@ -313,9 +295,7 @@ if image_file:
         use_container_width=True
     )
 
-# -----------------------------
-# Main Info Cards
-# -----------------------------
+
 if not pdf_file or not image_file:
     col1, col2, col3 = st.columns(3)
 
@@ -323,7 +303,7 @@ if not pdf_file or not image_file:
         st.markdown("""
         <div class='info-card'>
         <h3>📄 Manual Search</h3>
-        Retrieves maintenance procedures from uploaded PDF manuals.
+        Retrieves maintenance guidance from uploaded PDF manuals.
         </div>
         """, unsafe_allow_html=True)
 
@@ -331,7 +311,7 @@ if not pdf_file or not image_file:
         st.markdown("""
         <div class='info-card'>
         <h3>🖼️ Image Evidence</h3>
-        Uses the uploaded equipment image as visual maintenance evidence.
+        Uses the uploaded image as supporting equipment evidence.
         </div>
         """, unsafe_allow_html=True)
 
@@ -343,9 +323,7 @@ if not pdf_file or not image_file:
         </div>
         """, unsafe_allow_html=True)
 
-# -----------------------------
-# Chat History
-# -----------------------------
+
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         if msg["role"] == "assistant":
@@ -356,9 +334,7 @@ for msg in st.session_state.messages:
         else:
             st.write(msg["content"])
 
-# -----------------------------
-# Chat Input
-# -----------------------------
+
 question = st.chat_input("Ask about equipment fault or maintenance action...")
 
 if question:
