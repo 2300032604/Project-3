@@ -11,52 +11,107 @@ st.set_page_config(
     layout="wide"
 )
 
+# -----------------------------
+# Colorful UI CSS
+# -----------------------------
 st.markdown("""
 <style>
+
 .stApp {
-    background-color: #212121;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899);
     color: white;
 }
+
 .title {
     text-align: center;
-    font-size: 34px;
-    font-weight: bold;
+    font-size: 42px;
+    font-weight: 800;
+    color: white;
     margin-top: 20px;
 }
+
 .subtitle {
     text-align: center;
-    color: #b4b4b4;
-    font-size: 17px;
+    font-size: 18px;
+    color: #f8fafc;
     margin-bottom: 30px;
 }
+
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0f172a, #1e293b);
+    color: white;
+}
+
 .answer-box {
-    background: #303030;
+    background: white;
+    color: #111827;
+    padding: 22px;
+    border-radius: 22px;
+    box-shadow: 0px 8px 30px rgba(0,0,0,0.25);
+    line-height: 1.7;
+    font-size: 16px;
+}
+
+.source-box {
+    background: #f8fafc;
+    color: #111827;
+    border-left: 6px solid #06b6d4;
+    padding: 16px;
+    border-radius: 16px;
+    margin-top: 12px;
+}
+
+.info-card {
+    background: rgba(255,255,255,0.18);
     padding: 18px;
     border-radius: 18px;
-    margin-top: 10px;
-    line-height: 1.7;
+    margin-bottom: 15px;
+    color: white;
 }
-.source-box {
-    background: #171717;
-    border-left: 4px solid #10a37f;
-    padding: 14px;
-    border-radius: 10px;
-    margin-top: 10px;
-}
+
 .stFileUploader {
-    background: #2f2f2f;
+    background: white;
+    border-radius: 16px;
     padding: 15px;
-    border-radius: 15px;
 }
+
+.stTextInput input {
+    border-radius: 20px;
+    border: 2px solid #06b6d4;
+}
+
+.stButton>button {
+    background: linear-gradient(90deg, #06b6d4, #3b82f6);
+    color: white;
+    border-radius: 14px;
+    border: none;
+    font-weight: bold;
+}
+
+[data-testid="chatAvatarIcon-user"] {
+    background-color: #2563eb;
+}
+
+[data-testid="chatAvatarIcon-assistant"] {
+    background-color: #10b981;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<div class='title'>🛠️ Maintenance Copilot</div>", unsafe_allow_html=True)
-st.markdown(
-    "<div class='subtitle'>Upload a maintenance manual PDF and related equipment image</div>",
-    unsafe_allow_html=True
-)
+# -----------------------------
+# Header
+# -----------------------------
+st.markdown("""
+<div class='title'>🛠️ Maintenance Copilot</div>
+<div class='subtitle'>
+AI-Powered Equipment Diagnostics using Maintenance Manuals and Image Evidence
+</div>
+""", unsafe_allow_html=True)
 
+# -----------------------------
+# Helper Functions
+# -----------------------------
 def extract_pdf_text(pdf_file):
     reader = PdfReader(pdf_file)
     text = ""
@@ -86,82 +141,90 @@ def generate_maintenance_answer(question, retrieved_text):
     context = retrieved_text.lower()
 
     issue = "The issue may be related to equipment wear, abnormal operation, or a maintenance fault."
-    action = [
+
+    actions = [
         "Stop the equipment safely before inspection.",
         "Check the affected component shown in the uploaded image.",
         "Follow the relevant maintenance procedure from the manual.",
         "Inspect for wear, overheating, looseness, cracks, leakage, or abnormal vibration.",
-        "Replace or repair the damaged component if required.",
-        "Record the maintenance action and verify safe operation before restart."
+        "Repair or replace the damaged component if required.",
+        "Record the maintenance activity and verify safe operation before restart."
     ]
 
     if "temperature" in q or "overheat" in q or "heat" in context:
         issue = "The equipment may be experiencing overheating or thermal stress."
-        action = [
+        actions = [
             "Shut down the machine safely.",
-            "Inspect cooling fan, ventilation, and airflow paths.",
-            "Check for dust blockage or insufficient lubrication.",
+            "Inspect the cooling fan and ventilation paths.",
+            "Check for dust blockage or poor airflow.",
+            "Verify lubrication condition.",
             "Allow the equipment to cool before restarting.",
-            "Follow the overheating procedure mentioned in the manual."
+            "Follow the overheating procedure from the manual."
         ]
 
     elif "vibration" in q or "bearing" in q or "vibration" in context:
-        issue = "The equipment may have excessive vibration, bearing wear, or alignment problems."
-        action = [
+        issue = "The equipment may have excessive vibration, bearing wear, or shaft alignment issues."
+        actions = [
             "Inspect bearings for wear or damage.",
             "Check shaft alignment and mounting bolts.",
             "Verify lubrication condition.",
             "Replace worn bearings if vibration continues.",
-            "Run the equipment under observation after maintenance."
+            "Run the machine under observation after maintenance."
         ]
 
     elif "belt" in q or "belt" in context:
-        issue = "The equipment may have belt wear, belt looseness, or belt misalignment."
-        action = [
-            "Inspect the belt for cracks, wear, or looseness.",
-            "Check belt tension and pulley alignment.",
-            "Replace the belt if damaged.",
-            "Ensure guards are fitted before restarting."
+        issue = "The equipment may have belt wear, belt looseness, or pulley misalignment."
+        actions = [
+            "Inspect belt surface for cracks or wear.",
+            "Check belt tension.",
+            "Verify pulley alignment.",
+            "Replace damaged belt if required.",
+            "Ensure safety guards are fitted before restart."
         ]
 
     elif "leak" in q or "oil" in q or "leak" in context:
         issue = "The equipment may have oil leakage, seal failure, or lubrication-related fault."
-        action = [
+        actions = [
             "Identify the leakage point.",
-            "Check seals, joints, and lubrication lines.",
-            "Clean spilled oil and prevent slip hazards.",
-            "Replace damaged seals or fittings.",
+            "Inspect seals, joints, and lubrication lines.",
+            "Clean spilled oil to prevent slip hazards.",
+            "Replace damaged seals or loose fittings.",
             "Refill lubricant as per manual specification."
         ]
 
     elif "motor" in q or "motor" in context:
-        issue = "The motor may have electrical, overheating, or mechanical load-related issues."
-        action = [
+        issue = "The motor may have overheating, electrical, or mechanical load-related issues."
+        actions = [
             "Disconnect power before inspection.",
             "Check motor temperature and wiring condition.",
             "Inspect load, coupling, and ventilation.",
-            "Check for burning smell or unusual noise.",
-            "Contact electrical maintenance if fault persists."
+            "Check for burning smell, noise, or unusual vibration.",
+            "Contact electrical maintenance if the fault persists."
         ]
 
-    actions_text = ""
-    for i, step in enumerate(action, start=1):
-        actions_text += f"{i}. {step}\n"
+    action_text = ""
+    for i, step in enumerate(actions, start=1):
+        action_text += f"{i}. {step}<br>"
 
     return f"""
-Based on the uploaded maintenance manual and related image evidence:
-
-Possible Issue:
+<b>Possible Issue:</b><br>
 {issue}
 
-Recommended Maintenance Actions:
-{actions_text}
+<br><br>
 
-PDF Evidence Used:
+<b>Recommended Maintenance Actions:</b><br>
+{action_text}
+
+<br>
+
+<b>Evidence From Manual:</b><br>
 {retrieved_text[:1200]}
 """
 
 
+# -----------------------------
+# Session State
+# -----------------------------
 if "chunks" not in st.session_state:
     st.session_state.chunks = []
 
@@ -174,7 +237,9 @@ if "vectors" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-
+# -----------------------------
+# Sidebar Uploads
+# -----------------------------
 with st.sidebar:
     st.header("📤 Upload Inputs")
 
@@ -189,18 +254,29 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.write("### Inputs Required")
-    st.write("✅ PDF Manual")
-    st.write("✅ Related Image")
 
-    st.markdown("---")
-    st.write("### Example Questions")
-    st.write("What is the possible fault?")
-    st.write("What maintenance action is needed?")
-    st.write("Why is the motor overheating?")
-    st.write("What should I do for bearing vibration?")
+    st.markdown("""
+    <div class='info-card'>
+    <b>Required Inputs</b><br><br>
+    ✅ Maintenance Manual PDF<br>
+    ✅ Related Equipment Image
+    </div>
+    """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <div class='info-card'>
+    <b>Example Questions</b><br><br>
+    • Why is the motor overheating?<br>
+    • What maintenance action is needed?<br>
+    • What should I do for bearing vibration?<br>
+    • How can I fix oil leakage?<br>
+    • What causes belt failure?
+    </div>
+    """, unsafe_allow_html=True)
 
+# -----------------------------
+# Process PDF
+# -----------------------------
 if pdf_file:
     if (
         "processed_pdf" not in st.session_state
@@ -224,20 +300,66 @@ if pdf_file:
             st.session_state.processed_pdf = pdf_file.name
             st.session_state.messages = []
 
-        st.sidebar.success("PDF indexed successfully!")
+        st.sidebar.success("✅ PDF indexed successfully!")
 
-
+# -----------------------------
+# Display Image
+# -----------------------------
 if image_file:
     image = Image.open(image_file)
-    st.sidebar.image(image, caption="Uploaded Equipment Image", use_container_width=True)
+    st.sidebar.image(
+        image,
+        caption="Uploaded Equipment Image",
+        use_container_width=True
+    )
 
+# -----------------------------
+# Main Info Cards
+# -----------------------------
+if not pdf_file or not image_file:
+    col1, col2, col3 = st.columns(3)
 
+    with col1:
+        st.markdown("""
+        <div class='info-card'>
+        <h3>📄 Manual Search</h3>
+        Retrieves maintenance procedures from uploaded PDF manuals.
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+        <div class='info-card'>
+        <h3>🖼️ Image Evidence</h3>
+        Uses the uploaded equipment image as visual maintenance evidence.
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown("""
+        <div class='info-card'>
+        <h3>🛠️ Diagnosis</h3>
+        Suggests possible faults and maintenance actions.
+        </div>
+        """, unsafe_allow_html=True)
+
+# -----------------------------
+# Chat History
+# -----------------------------
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
-        st.write(msg["content"])
+        if msg["role"] == "assistant":
+            st.markdown(
+                f"<div class='answer-box'>{msg['content']}</div>",
+                unsafe_allow_html=True
+            )
+        else:
+            st.write(msg["content"])
 
-
-question = st.chat_input("Ask about the equipment issue or maintenance action...")
+# -----------------------------
+# Chat Input
+# -----------------------------
+question = st.chat_input("Ask about equipment fault or maintenance action...")
 
 if question:
     if st.session_state.vectors is None:
